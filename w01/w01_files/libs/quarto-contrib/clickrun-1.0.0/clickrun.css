@@ -1,0 +1,141 @@
+/* Click-to-run teaching template: code blocks render collapsed; a "Run"
+   button reveals that statement's own output. The open/closed state lives
+   on each output element itself (.is-open), not the parent .cell — a
+   single chunk can contain several independent statement runs, each with
+   its own button (see clickrun.js). */
+
+/* :not(.quarto-float) on the parent — numbered-table floats reuse the
+   "cell" class on their own wrapper div, so a bare `div.cell > .quarto-float`
+   would also match that wrapper's inner <figure> (itself .quarto-float) and
+   hide it permanently, since nothing ever gives *that* element .is-open
+   (see the matching :not(.quarto-float) guard in clickrun.js).
+
+   Hidden state deliberately avoids `display: none`. JS-powered outputs
+   (DT tables, and any other htmlwidget a future day might use) size
+   themselves against their container's real width the moment they
+   initialize, which for htmlwidgets happens at page load regardless of
+   whether the container is visible yet — a `display: none` ancestor gives
+   them 0px to work with, and merely revealing it later isn't enough to
+   fix that (tried a window "resize" nudge first; Quarto's own fill-sizing
+   for widgets doesn't listen for it). Keeping the element in normal flow
+   with `height: 0; overflow: hidden` instead means it still has a real,
+   non-zero width to measure at init time — only its vertical footprint
+   and visibility collapse. */
+div.cell > .cell-output,
+div.cell > .cell-output-display,
+div.cell:not(.quarto-float) > .quarto-float {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+}
+
+div.cell > .cell-output.is-open,
+div.cell > .cell-output-display.is-open,
+div.cell:not(.quarto-float) > .quarto-float.is-open {
+  visibility: visible;
+  height: auto;
+  overflow: visible;
+  animation: clickrun-fadein 0.25s ease-in;
+}
+
+@keyframes clickrun-fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* "Try it" solution code: `#| class.source: "hide-code"` marks a chunk's
+   source as hidden by default, revealed via its own "Code" button — kept
+   separate from the output's Run button, since showing a written solution
+   is a different decision from running it (see clickrun.js). :has() rather
+   than a class on the scaffold itself, since knitr's class.source option
+   only ever lands on the inner <pre>, not its code-copy wrapper div. */
+.code-copy-outer-scaffold:has(pre.hide-code) {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+}
+
+.code-copy-outer-scaffold:has(pre.hide-code).is-open {
+  visibility: visible;
+  height: auto;
+  overflow: visible;
+  animation: clickrun-fadein 0.25s ease-in;
+}
+
+.run-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  margin: 0.6em 0 0.6em 0;
+  padding: 0.35em 0.9em;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: #fff;
+  background: var(--brand-primary, #003056);
+  border: none;
+  border-radius: 0.35em;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.run-btn:hover {
+  background: #256575;
+}
+
+.run-btn:active {
+  transform: translateY(1px);
+}
+
+.run-btn[aria-expanded="true"] {
+  background: #555;
+}
+
+/* Tibble dual view: plain console print by default, toggled to a formatted
+   gt table via the "Table view" button — see knit_print.tbl_df in
+   _include/r/helpers.R. */
+.view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  margin: 0 0 0.6em 0;
+  padding: 0.25em 0.7em;
+  font-size: 0.78em;
+  font-family: "Roboto", sans-serif;
+  color: var(--brand-primary, #003056);
+  background: #fff;
+  border: 1px solid var(--brand-primary, #003056);
+  border-radius: 0.35em;
+  cursor: pointer;
+}
+
+.view-btn:hover {
+  background: #eef4f6;
+}
+
+/* Same reasoning as the .cell-output rules above: DT's widget needs a
+   real, non-zero-width container the moment it initializes, so hiding via
+   `hidden`/display:none is off the table here too. Margin is zeroed at
+   baseline and only restored per-element when open, matching the pattern
+   in outputs.css — a browser's default <pre> margin, or ours, would
+   otherwise still add visible space while collapsed even with height:0. */
+.tibble-console,
+.tibble-table {
+  visibility: hidden;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
+}
+
+.tibble-console.is-open {
+  visibility: visible;
+  height: auto;
+  overflow: visible;
+  margin: 0 0 0.6em 0;
+}
+
+.tibble-table.is-open {
+  visibility: visible;
+  height: auto;
+  overflow: visible;
+  margin-top: 0.4em;
+}
