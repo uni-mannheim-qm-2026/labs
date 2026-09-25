@@ -8,7 +8,7 @@
 
 <meta name="author" content="Johann-Friedrich Salzmann">
 <meta name="author" content="Joshua Elias Schmidt Rodrigues">
-<meta name="dcterms.date" content="2026-09-22">
+<meta name="dcterms.date" content="2026-09-23">
 
 <title>Week 03 — Statistical Inference</title>
 <style>
@@ -166,7 +166,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Date</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 22, 2026</p>
+      <p class="date">September 23, 2026</p>
     </div>
   </div>
   
@@ -861,7 +861,7 @@ mean of x mean of y
 </div>
 </div>
 </div>
-<p>All four intervals land in the same place, comfortably clear of zero.</p>
+<p>All four intervals land in the same place, comfortably clear of zero. They differ only in their assumptions: analytical and simulation both rely on the Normal approximation, <code>t.test()</code> uses the same SE but a slightly larger <img class="typst-equations-inline" src="w03_files/typst-equations/bb1771535adcafa0245be7d563333bf92897210c.svg" alt="t"> multiplier for having to estimate the variances, and only the bootstrap drops the Normal assumption for the data’s own shape — yet all four assume independent draws from one stable distribution.</p>
 <p>Same comparison as before, but there’s no separate “true” value to reveal this time — GERDA’s 2025 county results already <em>are</em> the full election outcome, not a sample of it, so the observed gap itself is as true as it gets. The backdrop here is the bootstrap distribution, the most directly “from the data itself” of the four methods:</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>diff_comparison_plot <span class="ot">&lt;-</span> diff_comparison <span class="sc">|&gt;</span></span>
