@@ -1,0 +1,191 @@
+/* Visual identity carried over from the quant methods lab site
+   (qm-uma.netlify.app, Source Themes Academic): navy primary, Montserrat
+   headings, Roboto body copy, Roboto Mono code. */
+
+:root {
+  --brand-primary: #003056;
+  /* Left-hand indent shared by every output box (outputs.css) — stdout/
+     warning/message/error, plots, tables, DT views — so it stays a single
+     value to tune rather than several repeated ones. */
+  --output-indent: 2em;
+}
+
+body {
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+/* Course logo (clickrun.lua, before-body) — sits above the whole
+   #quarto-content grid (title column + margin TOC), so centering it on the
+   full page width reads as a masthead over the title rather than being
+   pulled into either column. */
+.course-logo {
+  display: block;
+  width: 8em;
+  height: auto;
+  margin: 1.5em auto 2em auto;
+}
+
+h1, h2, h3, h4, h5, h6,
+.title, .subtitle, .quarto-title-banner,
+.navbar-title, .sidebar-title {
+  font-family: "Montserrat", sans-serif;
+  font-weight: 700;
+}
+
+code, pre, kbd, samp, .sourceCode {
+  font-family: "Roboto Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  margin-bottom: 0 !important;
+}
+
+/* Scoped to the document body only — a bare `a { color }` would also apply
+   to the TOC sidebar (see below for why that matters). Both values
+   confirmed against the actual rendered colors on qm-uma.netlify.app —
+   the site's stylesheet has more than one conflicting `a:hover` rule
+   (#00050a and #df7e50 both appear), and #df7e50 is the one that
+   actually wins in a real browser. */
+#quarto-document-content a {
+  color: var(--brand-primary);
+}
+
+#quarto-document-content a:hover {
+  color: #df7e50;
+  text-decoration: underline;
+}
+
+/* Quarto's own Bootstrap SCSS sets $toc-color: $link-color !default, i.e.
+   both the active and inactive TOC entries render in the brand link color
+   by design — normally distinguished only by the active entry's left
+   border. With brand.yml driving that link color to a fairly dark navy,
+   the "currently reading" highlight became hard to spot at a glance.
+   Giving inactive entries a muted gray restores the contrast; the active
+   entry keeps Quarto's own `!important` navy + border-left untouched. */
+
+.sidebar nav[role="doc-toc"] {
+  color: #888888;
+}
+
+.sidebar nav[role="doc-toc"] > ul a {
+  color: #6b6b6f;
+}
+
+.sidebar nav[role="doc-toc"] ul > li > a.active,
+.sidebar nav[role="doc-toc"] ul > li > ul > li > a.active {
+  font-weight: 600;
+}
+
+.sidebar nav[role="doc-toc"] h2 {
+    text-transform: uppercase;
+    font-size: .7em;
+}
+
+/* Title metadata row (author/date), styled like the icon-prefixed metadata
+   line on qm-uma.netlify.app: muted, icon-led, boxed off from the title
+   above and the body content below by its own rules rather than just
+   whitespace. Icons are self-hosted Font Awesome (clickrun-fontawesome
+   dependency in clickrun.lua — same font files as the Typst side, not a
+   CDN), matching the icon set used on the PDF side of this template. */
+.quarto-title-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2em;
+  margin: 1.2em 0 1.8em 0;
+  padding: 0.9em;
+  border: 1px solid #e4e4e7;
+  background: #fafafa;
+}
+
+.quarto-title-meta-heading {
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b6b6f;
+  margin-bottom: 0.3em;
+  margin-top: 0 !important;
+  /* Quarto's own bootstrap.css sets opacity: .8 on this class by default
+     (a muted-metadata-label look) — since opacity applies to descendants
+     too, it was also washing out the ::before icon's navy fill below.
+     We already chose our own explicit muted grey for the label text, so
+     the opacity was redundant there and unwanted on the icon; cancel it.
+     !important: same-specificity tie against bootstrap.css, which loads
+     after this stylesheet and would otherwise win on source order. */
+  opacity: 1 !important;
+}
+
+.quarto-title-meta-heading::before {
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  margin-right: 0.4em;
+  color: var(--brand-primary, #003056);
+}
+
+/* No semantic class distinguishes the author vs. date block — Quarto
+   always emits author(s) first, date second, so position is reliable. */
+.quarto-title-meta > div:nth-child(1) .quarto-title-meta-heading::before {
+  content: "\f0c0"; /* fa-users */
+}
+
+.quarto-title-meta > div:nth-child(2) .quarto-title-meta-heading::before {
+  content: "\f133"; /* fa-calendar */
+}
+
+/* Quarto's own title-block author rendering auto-generates the mailto
+   icon-link itself (from the standard `email:` author field) using
+   Bootstrap Icons — overriding its already-present <i class="bi
+   bi-envelope"> here rather than suppressing and rebuilding it. Explicit
+   margin-left rather than relying on the single text-space Quarto puts
+   before it in the markup, for a guaranteed consistent gap. */
+.quarto-title-author-email {
+  margin-left: 0.4em;
+  /* Quarto's own bootstrap.css sets opacity: .7 on this class (same
+     muted-metadata-link idea as .quarto-title-meta-heading's opacity:
+     .8 above) — cancel it so the icon's navy fill renders at full
+     strength instead of looking washed out. !important for the same
+     source-order tie-break reason as that other rule. */
+  opacity: 1 !important;
+}
+
+.quarto-title-author-email i.bi-envelope::before {
+  font-family: "Font Awesome 7 Free" !important;
+  font-weight: 900 !important; /* selects FA's *solid* @font-face over *regular* — see all.min.css */
+  content: "\f0e0" !important; /* fa-envelope, solid */
+  /* Bootstrap Icons doesn't render as a font glyph at all — its own
+     ::before rule paints an inline SVG data-URI via background-image
+     (content stays "" there), sized to a fixed 1rem x 1rem box. That
+     background paints regardless of the content/font-family/font-weight
+     overrides above, which only ever affected text-glyph rendering, not
+     this — so the bootstrap-icons envelope shape was still showing (or
+     showing through/behind) no matter what we set on content or font.
+     Killing it is what actually lets the FA glyph become visible. */
+  background-image: none !important;
+}
+
+/* GitHub icon-link per author — clickrun.js appends this next to the
+   email one, reading a small JSON blob clickrun.lua embeds from each
+   author's custom "github" field (not a field Quarto's title-block
+   renderer knows about on its own, so it never reaches the HTML any
+   other way). Real fa-brands classes here, not an override hook, since
+   this element doesn't pre-exist for us to hook into. clickrun.js strips
+   the trailing whitespace text node Quarto leaves after the email link
+   before appending this, so this margin is the only spacing in play —
+   otherwise the two would stack and look like too big a gap. */
+.quarto-title-author-github {
+  margin-left: 0.4em;
+}
+
+/* Other Formats panel icons (format-links `icon: file-pdf`/`file-code`
+   in day00.qmd) — same override-hook approach as the email icon above. */
+.quarto-alternate-formats i.bi-file-pdf::before {
+  font-family: "Font Awesome 7 Free" !important;
+  font-weight: 900 !important; /* see the email icon rule above for why */
+  content: "\f1c1" !important; /* fa-file-pdf */
+  background-image: none !important; /* see the email icon rule above for why */
+}
+
+.quarto-alternate-formats i.bi-file-code::before {
+  font-family: "Font Awesome 7 Free" !important;
+  font-weight: 900 !important; /* see the email icon rule above for why */
+  content: "\f1c9" !important; /* fa-file-code */
+  background-image: none !important; /* see the email icon rule above for why */
+}
