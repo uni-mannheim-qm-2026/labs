@@ -1,0 +1,331 @@
+/* Distinguish output kinds by background + a small labeled badge.
+   Requires the knit_hooks override in _include/r/helpers.R, which tags
+   warning()/message() output with .cell-output-warning / .cell-output-message
+   in addition to Quarto's default .cell-output-stderr (knitr gives both the
+   same class out of the box, which is what this is working around). */
+
+.cell-output-stdout,
+.cell-output-warning,
+.cell-output-message,
+.cell-output-error {
+  position: relative;
+}
+
+/* margin/padding/border only apply once open — height:0 (see clickrun.css)
+   zeroes content height while collapsed, but does nothing about padding or
+   margin, which would otherwise still add real visible space. */
+.cell-output-stdout.is-open,
+.cell-output-warning.is-open,
+.cell-output-message.is-open,
+.cell-output-error.is-open {
+  /* Left-indented like a blockquote, right edge left at 0 so the box still
+     runs out to the full content width on that side — only the left edge
+     pulls in, distinguishing output from the prose/code above it. */
+  margin: 0 0 0.6em var(--output-indent, 2em);
+  padding: 1.6em 1em 0.8em 1em;
+  border-radius: 0.4em;
+  border-left: 4px solid transparent;
+}
+
+.cell-output-stdout {
+  background: #f4f5f6;
+  border-left-color: #99979c;
+}
+
+.cell-output-warning {
+  background: #fdf3e3;
+  border-left-color: #d99a1b;
+}
+
+.cell-output-message {
+  background: #e9f2f7;
+  border-left-color: #2f7f93;
+}
+
+.cell-output-error {
+  background: #fbe9e9;
+  border-left-color: #c0392b;
+}
+
+/* Icon (::before) and label (::after) as two separate pseudo-elements,
+   not one combined via font-stack fallback — that approach (Font Awesome
+   glyph + plain text in one `content` string, relying on the browser to
+   fall through to Roboto for characters FA's font doesn't have) turned
+   out unreliable in practice: FA's font apparently supplies *some*
+   fallback shape for ordinary Latin letters too, so the label rendered
+   in the icon font instead of Roboto, at font-weight 900 (needed for the
+   icon's "solid" style) — much heavier than the previous 700. Two
+   pseudo-elements give the icon and the label each their own font/weight
+   with no fallback ambiguity. left offsets are hand-tuned so the label
+   clears the icon glyph's width at this font-size. */
+.cell-output-stdout::before,
+.cell-output-warning::before,
+.cell-output-message::before,
+.cell-output-error::before {
+  position: absolute;
+  top: 0.45em;
+  left: 1em;
+  font-family: "Font Awesome 7 Free";
+  font-weight: 900;
+  font-size: 0.72em;
+}
+
+.cell-output-stdout::after,
+.cell-output-warning::after,
+.cell-output-message::after,
+.cell-output-error::after {
+  position: absolute;
+  top: 0.45em;
+  left: 2.2em;
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-size: 0.72em;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.cell-output-stdout::before { content: "\f120"; color: #6b6b6f; } /* fa-terminal */
+.cell-output-stdout::after { content: "Output"; color: #6b6b6f; }
+.cell-output-warning::before { content: "\f071"; color: #8a5a00; } /* fa-triangle-exclamation */
+.cell-output-warning::after { content: "Warning"; color: #8a5a00; }
+.cell-output-message::before { content: "\f05a"; color: var(--brand-primary, #2f7f93); } /* fa-circle-info */
+.cell-output-message::after { content: "Message"; color: var(--brand-primary, #2f7f93); }
+.cell-output-error::before { content: "\f057"; color: #c0392b; } /* fa-circle-xmark */
+.cell-output-error::after { content: "Error"; color: #c0392b; }
+
+/* Plot / table output containers. Numbered floats (fig-/tbl- labels) can
+   land either as a .quarto-float nested inside .cell-output-display
+   (figures) or as a .quarto-float that directly replaces it (tables) —
+   see clickrun.js — so these rules target both container shapes. */
+.cell-output-display.is-open,
+.quarto-float.is-open {
+  /* Same left-only indent as the stdout/warning/message/error boxes above,
+     for plots/tables/DT views — right edge stays at 0 (full width). */
+  margin: 0em 0 0.8em var(--output-indent, 2em);
+}
+
+.cell-output-display.is-open:has(.quarto-figure),
+.quarto-float.is-open:has(.quarto-figure) {
+  padding: 1em;
+  background: #fbfbfc;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5em;
+}
+
+.cell-output-display.is-open:has(table.gt_table),
+.quarto-float.is-open:has(table.gt_table),
+.cell-output-display.is-open:has(table.dataTable),
+.quarto-float.is-open:has(table.dataTable) {
+  padding: 0.75em;
+  background: #fbfbfc;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5em;
+  overflow-x: auto;
+}
+
+.panel-tabset {
+    margin-top: .5em;
+}
+
+/* A numbered table (tbl- label) nests THREE elements that each satisfy
+   `:has(table.gt_table)`, in this order: the outer wrapper div
+   (.quarto-float), the <figure> inside it (also classed .quarto-float —
+   "quarto-float-tbl", specifically), and gt's own .cell-output-display
+   further inside that. Figures don't have this problem: their inner
+   <figure> carries "quarto-float-fig" but never the exact "quarto-figure"
+   class my figure rule above keys on, so only the outermost div ever
+   matches there. For tables, reset every nested repeat back to no box,
+   keeping only the outermost frame around caption + table together. */
+.quarto-float:has(table.gt_table) .quarto-float,
+.quarto-float:has(table.gt_table) .cell-output-display {
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* Table headings: grey background + white text + monospace, matching the
+   "Reset" state of .run-btn. gt scopes its own header style per-table via
+   an id selector (#<random-id> .gt_col_heading), which beats a plain class
+   on specificity — !important is the deliberate, narrow override for that.
+   Also covers plain markdown/kable tables (bare th), so the look is
+   consistent regardless of which table-producing path a day's qmd uses. */
+th,
+.gt_col_heading,
+.gt_column_spanner {
+  background: #555 !important;
+  color: #fff !important;
+  font-family: "Roboto Mono", SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-weight: 600;
+}
+
+/* DT (DataTables): its own bundled CSS is deliberately excluded (see
+   knit_print.tbl_df in _include/r/helpers.R, which strips the dt-core
+   stylesheet dependency but keeps the script) — DataTables' JS behavior
+   doesn't depend on its CSS being loaded, so this styles its generated
+   markup entirely ourselves rather than fighting !important/specificity
+   battles against theirs. 0.9375rem (15/16 of the root size), not a
+   hardcoded px: this page's root font-size computes to 17px, not the
+   usual 16px browser default, so a plain 1rem overshot; expressing it as
+   a fraction of the root still tracks zoom/user font-size preferences
+   rather than pinning an absolute value. */
+.dataTables_wrapper {
+  font-family: "Roboto", sans-serif;
+  font-size: 0.9375rem;
+  margin-top: 0.6em;
+}
+
+/* Top row (length + filter) and bottom row (info + paginate) are plain
+   sibling <div>s with no shared wrapper of their own — DataTables' own
+   (excluded) CSS normally floats them apart via a legacy float layout.
+   Doing the same ourselves, plus a clearfix so the table below doesn't
+   ignore the floats' height. */
+.dataTables_length {
+  float: left;
+}
+
+.dataTables_filter {
+  float: right;
+}
+
+.dataTables_info {
+  float: left;
+}
+
+.dataTables_paginate {
+  float: right;
+}
+
+.dataTables_wrapper::before,
+.dataTables_wrapper::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.dataTables_length,
+.dataTables_filter {
+  margin-bottom: 0.6em;
+}
+
+.dataTables_length select {
+  font-family: "Roboto", sans-serif;
+  padding: 0.15em 0.4em;
+  border: 1px solid #d4d4d8;
+  border-radius: 0.3em;
+}
+
+.dataTables_filter input {
+  margin-left: 0.5em;
+  padding: 0.25em 0.6em;
+  border: 1px solid #d4d4d8;
+  border-radius: 0.3em;
+  font-family: "Roboto", sans-serif;
+}
+
+.dataTables_info,
+.dataTables_length,
+.dataTables_paginate,
+.dataTables_filter {
+  font-size: 0.78em;
+  color: #6b6b6f;
+}
+
+/* Row striping/hover comes from this theme's own table/table-striped/
+   table-hover Bootstrap classes (see the `class` argument on
+   DT::datatable() in helpers.R) — same convention as gt's tables, rather
+   than a separately hand-rolled DT-only stripe color. Only column
+   alignment/spacing needs setting here. */
+.tibble-table table.dataTable th,
+.tibble-table table.dataTable td {
+  padding: 0.5em 0.75em;
+  text-align: left;
+}
+
+/* Sort indicators — DataTables adds .sorting/.sorting_asc/.sorting_desc to
+   <th> regardless of whether its own CSS is loaded (these drive its click
+   handling too, not just presentation), so replacing its default
+   background-image arrows with simple glyphs is enough; no JS involved. */
+.tibble-table table.dataTable thead th.sorting,
+.tibble-table table.dataTable thead th.sorting_asc,
+.tibble-table table.dataTable thead th.sorting_desc {
+  cursor: pointer;
+}
+
+.tibble-table table.dataTable thead th.sorting::after,
+.tibble-table table.dataTable thead th.sorting_asc::after,
+.tibble-table table.dataTable thead th.sorting_desc::after {
+  margin-left: 0.4em;
+  font-size: 0.75em;
+  opacity: 0.5;
+}
+
+.tibble-table table.dataTable thead th.sorting::after { content: "▲▼"; }
+.tibble-table table.dataTable thead th.sorting_asc::after { content: "▲"; opacity: 1; }
+.tibble-table table.dataTable thead th.sorting_desc::after { content: "▼"; opacity: 1; }
+
+/* Row-number column ("#"): a "row header" gutter — same dark background +
+   muted light text as the column headings, for the header cell AND every
+   data cell in the column, not just the header. Set directly on the td so
+   it overrides row striping instead of showing the stripe through it. */
+.tibble-table table.dataTable thead th:first-child {
+  /* !important: needed to beat the earlier `th { color: #fff !important }`
+     rule (that one exists to beat gt's own ID-scoped inline styles) —
+     same importance, but this selector is more specific, so it wins. */
+  color: #bbb !important;
+}
+
+.tibble-table table.dataTable tbody td:first-child {
+  background: #555;
+  color: #bbb;
+}
+
+/* Small versions of the Run/Reset button: navy = clickable, grey = current
+   page (mirrors .run-btn's own aria-expanded="true" grey), light grey =
+   disabled. Scoped through #quarto-document-content: without it, these
+   lose to #quarto-document-content a's ID-scoped prose-link color/
+   underline in theme.css — an ID always outranks a plain class no matter
+   how the rest of the selector compares, so matching that ID is the only
+   way to win without reaching for !important. */
+#quarto-document-content .paginate_button {
+  display: inline-block;
+  margin-left: 0.3em;
+  text-decoration: none;
+  font-family: "Roboto", sans-serif;
+  border-radius: 0.3em;
+  border: none;
+  padding: 0.25em 0.65em;
+  background: var(--brand-primary, #003056);
+  color: #fff;
+  cursor: pointer;
+}
+
+#quarto-document-content .paginate_button:hover {
+  background: #256575;
+  color: #fff;
+  text-decoration: none;
+}
+
+#quarto-document-content .paginate_button.current,
+#quarto-document-content .paginate_button.current:hover {
+  background: #555;
+  color: #fff;
+}
+
+#quarto-document-content .paginate_button.disabled,
+#quarto-document-content .paginate_button.disabled:hover {
+  background: #e4e4e7;
+  color: #999;
+  cursor: default;
+}
+
+/* Figure captions: numbered via the fig-/tbl- label prefix + Quarto crossref */
+figcaption,
+.gt_caption {
+  margin-top: 0.6em;
+  font-size: 0.88em;
+  font-style: italic;
+  color: #5a5a5e;
+  text-align: center;
+}
